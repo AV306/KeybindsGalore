@@ -31,7 +31,8 @@ public class ConfigManager
     private final Class<?> configurableClass; /** The Class object holding the config fields */
     private Object configurableClassInstance; /** The instance on which to set the config fields (if instance fields are used) */
 
-    private File configFile; /** A {@Link java.io.File} object representing the config file, guaranteed to exist after {@Link #checkConfigFile} is run */
+    /** A File object representing the config file, guaranteed to exist after checkConfigFile() is run */
+    private File configFile;
 
     /**
      * True if there were errors when reading the config file.
@@ -77,7 +78,8 @@ public class ConfigManager
         {
             try (
                 InputStream defaultConfigFileInputStream = this.getClass().getResourceAsStream( "/" + this.configFileName );
-                FileOutputStream fos = new FileOutputStream( this.configFile ); )
+                FileOutputStream fos = new FileOutputStream( this.configFile )
+            )
             {
                 this.configFile.createNewFile();
                 
@@ -97,8 +99,8 @@ public class ConfigManager
 
     /**
      * Read configs from the config file. Sets hasCustomData if invalid config statements were read.
-     * 
-     * NOTE: entries in the config file MUST match field names EXACTLY
+     * <br>
+     * NOTE: entries in the config file MUST match field names EXACTLY (case-insensitive)
      */
     public void readConfigFile() throws IOException
     {
@@ -237,131 +239,5 @@ public class ConfigManager
         }
 
         KeybindsGalorePlus.LOGGER.info( "Finished reading config file!" );
-    }
-
-    /**
-     * Save the modified configs into the config file
-     * 
-     * @throws IOException, if one was thrown while saving the file
-     */
-    public void saveConfigFile() throws IOException
-    {
-        // Check old config file
-        // POV: user deleted config file partway through execution
-        this.checkConfigFileExists();
-
-        // Create temporary config file
-        File tempConfigFile;
-        try
-        {
-            tempConfigFile = File.createTempFile( this.configFileName, ".tmp" );
-        }
-        catch ( IOException ioe )
-        {
-            System.err.printf( "IOException while creating temporary config file (not saving configs): %s" );
-            ioe.printStackTrace();
-            throw ioe;
-            //return;
-        }
-
-        // Scan through each line in the config file
-        try (
-            BufferedReader reader = new BufferedReader( new FileReader( this.configFile ) );
-            BufferedWriter writer = new BufferedWriter( new FileWriter( tempConfigFile ) )
-        )
-        {
-            reader.lines().forEach( line ->
-            {
-                try
-                {
-                    // Copy comments and blank lines, then continue
-                    if ( line.startsWith( "#" ) || line.isBlank() )
-                    {
-                        writer.write( line );
-                        return;
-                    }
-
-                    // Split line
-                    String[] entry = line.trim().split( "=" );
-                    entry[0] = entry[0].trim();
-                    //entry[1] = entry[1].trim();
-                    
-                    // Serialise config value from field
-                    // Catch problems here and continue, to ensure other configs are written
-                    try
-                    {
-                        Field f = this.configurableClass.getDeclaredField( entry[0] );
-
-                        if ( f.getType().isAssignableFrom( short.class ) )
-                        {
-                            // Short value (0x??)
-                            entry[1] = "0x" + f.getShort( this.configurableClassInstance );
-                        }
-                        else if ( f.getType().isAssignableFrom( int.class ) )
-                        {
-                            // Integer value
-                            entry[1] = String.valueOf( f.getInt( this.configurableClassInstance ) );
-                        }
-                        else if ( f.getType().isAssignableFrom( float.class ) )
-                        {
-                            entry[1] = String.valueOf( f.getFloat( this.configurableClassInstance ) );
-                        }
-                        else if ( f.getType().isAssignableFrom( boolean.class ) )
-                        {
-                            entry[1] = String.valueOf( f.getBoolean( this.configurableClassInstance ) );
-                        }
-                        else
-                        {
-                            System.err.printf( "Unrecognised data type for config entry %s%n", line );
-                        }
-                    }
-                    catch ( ArrayIndexOutOfBoundsException oobe )
-                    {
-                        // Malformed config line
-                        System.out.printf( "Malformed config line: %s%n", line );
-                    }
-                    catch ( NoSuchFieldException nsfe )
-                    {
-                        // Invalid config key
-                        System.err.printf( "No matching field found for config entry: %s%n", entry[0] );
-                    }
-                    catch ( IllegalAccessException illegal )
-                    {
-                        // Illegal field access
-                        System.err.printf( "Illegal access on field %s%n", entry[0] );
-                    }
-
-                    // Write modified line to temp file
-                    writer.write( entry[0] + "=" + entry[1] );
-                }
-                catch ( IOException ioe )
-                {
-                    // IOException when writing line
-                    System.err.printf( "IOException while saving config line: %s%n", line );
-                    // Continue saving...
-                }
-            } );
-
-            // Backup old file
-            Files.move(
-                this.configFile.toPath(),
-                this.configFile.toPath().resolveSibling( this.configFileName + ".bak" )
-            );
-
-            // Move temp file over
-            Files.move(
-                tempConfigFile.toPath(),
-                this.configFileDirectory.resolve( this.configFileName )
-            );
-        }
-        catch ( IOException ioe )
-        {
-            // IOException somewhere else (ugh)
-            System.err.printf( "IOException while saving config file: %s%n", ioe.getMessage() );
-            throw ioe;
-            //ioe.printStackTrace();
-        }
-
-        System.out.println( "Finished saving config file!" );
     }
 }

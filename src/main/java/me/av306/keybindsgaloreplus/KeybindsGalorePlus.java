@@ -92,7 +92,7 @@ public class KeybindsGalorePlus implements ClientModInitializer
                     }
 
                     if ( configManager.errorFlag ) client.player.sendMessage( Text.translatable( "text.keybindsgaloreplus.configerrors" ).formatted( Formatting.RED ), false );
-                    if ( customDataManager.hasCustomData) client.player.sendMessage( Text.translatable( "text.keybindsgaloreplus.customdatafound" ), false );
+                    if ( customDataManager.hasCustomData ) client.player.sendMessage( Text.translatable( "text.keybindsgaloreplus.customdatafound" ), false );
 
                     client.player.sendMessage( Text.translatable( "text.keybindsgaloreplus.configreloaded" ), false );
 

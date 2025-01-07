@@ -24,15 +24,15 @@ public class KeybindManager
 
 
     /**
-     * Maps physical keys to a list of bindings they can trigger
-     *
-     * Only contains keys bound to more than one binding
+     * Maps physical keys to a list of bindings they can trigger.
+     * <br>
+     * Only contains keys bound to more than one binding.
      */
     private static final Hashtable<InputUtil.Key, List<KeyBinding>> bindingsToKeys = new Hashtable<>();
 
     /**
-     * Check if a given key has any binding conflicts, and adds any bindings to its list
-     * 
+     * Check if a given key has any binding conflicts, and adds any bindings to its list.
+     * <br>
      * NOTE: deprecated, bugs will not be fixed
      * 
      * @param key: The key to check
@@ -155,7 +155,7 @@ public class KeybindManager
 
     /**
      * Handle mixin method cancellation and related logic when a conflicted key is presed
-     * @param key: the conflicted physical key
+     * @param key: the physical key that was pressed
      * @param pressed: the pressed state of the conflicted key
      * @param ci: CallbackInfo for the mixin
      */
@@ -165,37 +165,39 @@ public class KeybindManager
         {
             if ( !isIgnoredKey( key ) )
             {
-                // Conflicts and not ignored
+                // Key has conflicts and shouldn't be ignored
+
                 ci.cancel();
 
                 if ( pressed )
                 {
-                    // Pressed -- open menu
+                    // Conflicts to handle, and was pressed -- open pie menu
+
                     // Changing Screens (which this method does) resets all bindings to "unpressed",
                     // so zoom mods should work absolutely fine with us :)
                     KeybindsGalorePlus.debugLog( "\tOpened pie menu" );
 
                     openConflictMenu( key );
                 }
-                // Released -- do nothing
+                // Conflicts to handle, but key was released -- do nothing
             }
             else if ( Configurations.USE_KEYBIND_FIX )
             {
-                // Skipped key and use vanilla fix
+                // Key conflicts ignored, and should use fixed behaviour
+
                 ci.cancel();
 
-                // Transfer key state to all bindings
+                // Transfer key state to all bindings on the key
                 getConflicts( key ).forEach( binding ->
                 {
                     KeybindsGalorePlus.debugLog( "\tVanilla fix, enabling key {}", binding.getTranslationKey() );
-
 
                     ((KeyBindingAccessor) binding).setPressed( pressed );
                     ((KeyBindingAccessor) binding).setTimesPressed( 1 );
                 } );
             }
             //else {}
-            // Skipped and no vanilla fix -- proceed as per vanilla
+            // Conflicts ignored, and vanilla behaviour is ok -- proceed as per vanilla
         }
         // else {}
         // No conflicts -- proceed as per vanilla

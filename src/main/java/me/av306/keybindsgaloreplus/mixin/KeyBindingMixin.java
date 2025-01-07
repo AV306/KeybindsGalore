@@ -36,50 +36,37 @@ public abstract class KeyBindingMixin
     @Inject( method = "setKeyPressed", at = @At( "HEAD" ), cancellable = true )
     private static void setKeyPressed( InputUtil.Key key, boolean pressed, CallbackInfo ci ) throws Exception
     {
-        KeybindsGalorePlus.debugLog( "setKeyPressed called for key {} with pressed state {}", key.getTranslationKey(), pressed );
+        KeybindsGalorePlus.debugLog( "setKeyPressed called for key {} with state {}", key.getTranslationKey(), pressed );
 
+        // Handle key
         KeybindManager.handleKeyPress( key, pressed, ci );
     }
 
-    // Normally this handles incrementing times pressed
-    // Only called when key first goes down
-    // "times pressed" is probably used for input accumulation so we prob don't want to mess with that
+    // Normally this handles incrementing times pressed; only called when key first goes down
+    // "times pressed" is probably used for sub-tick input accumulation
     @Inject( method = "onKeyPressed", at = @At( "HEAD" ), cancellable = true )
     private static void onKeyPressed( InputUtil.Key key, CallbackInfo ci )
     {
-        KeybindsGalorePlus.debugLog( "onKeyPressed called for {}", key.getTranslationKey() );
+        KeybindsGalorePlus.debugLog( "onKeyPressed called for key {}", key.getTranslationKey() );
 
         if ( KeybindManager.hasConflicts( key ) /*&& !KeybindManager.isSkippedKey( key )*/ )
         {
             KeybindsGalorePlus.debugLog( "\tCancelling sub-tick accumulation" );
 
-            ci.cancel(); // Cancel, because we've sorted out the sub-tick presses (by forcing it to 1)
+            ci.cancel(); // Cancel, because we've sorted out sub-tick presses (by setting it to 1)
         }
     }
 
-    // seems to not be called, somehow
-    // except for this one guy https://github.com/AV306/KeybindsGalore-Plus/issues/10
+    // Theoretically, this should be called ALL THE TIME
+    // which it *is*, but ONLY IN A NON-DEV ENVIRONMENT, somehow
     @Inject( method = "setPressed", at = @At("HEAD"), cancellable = true )
     private void setPressed( boolean pressed, CallbackInfo ci )
     {
-        KeybindsGalorePlus.LOGGER.warn( "setPressed called for keybind {} on physical key {} with value {}", this.translationKey, this.boundKey.getTranslationKey(), pressed );
-        MinecraftClient.getInstance().player.sendMessage(
-                Text.translatable( "text.keybindsgaloreplus.setpressedhappened" )
-                        .append( KeybindsGalorePlus.createHyperlinkText( "https://github.com/AV306/KeybindsGalore-Plus/" ) ),
-                false
-        );
+        KeybindsGalorePlus.debugLog( "setPressed( {} ) called for keybind {} on physical key {}", pressed, this.translationKey, this.boundKey.getTranslationKey() );
 
-        // 4 years of Java and I don't actually know how to get a stack trace normally
-        //new Exception().printStackTrace();
-        // Never mind, I learnt
-        //Thread.dumpStack();
-        // Wait, that method literally just does what I did just now-
-
-        // ^ Leaving that there because it's funny
-        // Drop stack trace so we can find out how this happens
-        new Exception().printStackTrace();
-
-        // Should fix https://github.com/AV306/KeybindsGalore-Plus/issues/10
-        KeybindManager.handleKeyPress( this.boundKey, pressed, ci );
+        // I can't demonstrate that this actually causes issues (setPressed( true ) only happened for the mouse when I tried)
+        // but it has potential for duplicating the handleKeyPress call, since setKeyPressed is *supposed* to call setPressed...
+        // Not calling handleKeyPress may cause https://github.com/AV306/KeybindsGalore-Plus/issues/10 though
+        //KeybindManager.handleKeyPress( this.boundKey, pressed, ci );
     }
 }

@@ -40,6 +40,7 @@ public class KeybindSelectorScreen extends Screen
     private int centreX = 0, centreY = 0;
 
     private float maxRadius = 0;
+    private float maxExpandedRadius = 0;
     private float cancelZoneRadius = 0;
 
     private boolean isFirstFrame = true;
@@ -87,6 +88,7 @@ public class KeybindSelectorScreen extends Screen
             this.centreY = this.height / 2;
 
             this.maxRadius = Math.min( (this.centreX * Configurations.PIE_MENU_SCALE) - Configurations.PIE_MENU_MARGIN, (this.centreY * Configurations.PIE_MENU_SCALE) - Configurations.PIE_MENU_MARGIN );
+            this.maxExpandedRadius = this.maxRadius * Configurations.EXPANSION_FACTOR_WHEN_SELECTED;
             this.cancelZoneRadius = maxRadius * Configurations.CANCEL_ZONE_SCALE;
 
             this.isFirstFrame = false;
@@ -187,7 +189,7 @@ public class KeybindSelectorScreen extends Screen
     private float calculateRadius( float delta, int numberOfSectors, int sectorIndex )
     {
         float radius = Configurations.ANIMATE_PIE_MENU ?
-                Math.max( 0F, Math.min( (this.ticksInScreen + delta - sectorIndex * 6F / numberOfSectors) * 40F, this.maxRadius ) ) :
+                Math.max( 0f, Math.min( (this.ticksInScreen + delta - sectorIndex * 6f / numberOfSectors) * 40f, this.maxRadius ) ) :
                 this.maxRadius;
 
         // Expand the sector if selected
@@ -224,6 +226,7 @@ public class KeybindSelectorScreen extends Screen
             // Read custom data for this keybind, if present
             if ( KeybindsGalorePlus.customDataManager.hasCustomData )
             {
+
                 try
                 {
                     //KeybindsGalorePlus.LOGGER.info( "Keybind ID: {}", id );

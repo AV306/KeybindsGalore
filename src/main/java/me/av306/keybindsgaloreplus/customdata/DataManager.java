@@ -77,12 +77,15 @@ public class DataManager
                 }
             }
 
-            this.hasCustomData = true;
+            // Finished reading file
+            //this.hasCustomData = true;
             KeybindsGalorePlus.LOGGER.info( "Custom keybind data file read successfully!" );
         }
         catch ( IOException ioe )
         {
+            // IOE -- usually file not found
             this.hasCustomData = false;
+
             KeybindsGalorePlus.LOGGER.warn( "IOException while reading custom data: {}", ioe.getMessage() );
             //ioe.printStackTrace();
         }
