@@ -18,7 +18,7 @@ It also corrects the default keybind conflict behaviour for keys that you choose
 Supports 1.21, and works on Neoforge with Sinytra Connector!
 
 <div style="display: flex; justify-content: center; align-items: center;">
-  <img src="https://github.com/AV306/MultiBind/blob/6d65ebe0942862e86e7fc73cd2a60b860edccd15/images/pie_menu_1.gif?raw=true" />
+  <img src="https://github.com/AV306/KeybindsGalore-Plus/blob/14b7001f913c9bf089ef4fc41934c60dcf0db275/images/kbg_plus_demo.gif?raw=true" height=400 />
 </div>
 
 <br>
