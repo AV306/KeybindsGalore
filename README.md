@@ -1,7 +1,7 @@
 # KeybindsGalore Plus
 
-> [!WARNING]<br>
-> If you ever get a UnsupportedClassVersionError crash, you should try using **Java 21**.
+> [!NOTE]<br>
+> If you ever get a UnsupportedClassVersionError crash, try using **Java 21**.
 >
 > See [this issue](https://github.com/AV306/KeybindsGalore-Plus/issues/6) for more details.
 
@@ -11,16 +11,15 @@
 
 <br>
 
-This Fabric mod gives keys attached to multiple keybindings a **pie menu** (aka pizza menu, circle selector, etc) that lets you choose the *desired action* when the key is pressed!
+This Fabric mod gives keys with to multiple conflicting keybindings a **pie menu** (aka pizza menu, circle selector, etc) that lets you choose the *desired action* when the key is pressed!
 
 It also corrects the default keybind conflict behaviour for keys that you choose to not open a pie menu, so they will activate **all** bindings when pressed (and not just whichever one happened to be attached to the key last), similar to [Keybinds Fix].
 
-Supports 1.21!
+Supports 1.21, and works on Neoforge with Sinytra Connector!
 
 <div style="display: flex; justify-content: center; align-items: center;">
   <img src="https://github.com/AV306/MultiBind/blob/6d65ebe0942862e86e7fc73cd2a60b860edccd15/images/pie_menu_1.gif?raw=true" />
 </div>
-
 
 <br>
 
@@ -30,8 +29,7 @@ Supports 1.21!
 - Keybind labels now show their category along with their name ([example](https://github.com/AV306/MultiBind/blob/master/docs.md))
 - Customisable keybind labels (see [this issue](https://github.com/AV306/KeybindsGalore-Plus/issues/3))
 - Label texts no longer run off the screen
-- Fully configurable pie menu
-- A small "cancel zone" at the centre of the pie menu that will not activate any binding
+- Fully customisable pie menu
 - And more...
 
 <br>
@@ -50,6 +48,7 @@ Supports 1.21!
 - GuardedHoney53
 - BumbleTree
 - Mideks
+- UNI717
 
 <br>
 
