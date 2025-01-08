@@ -113,7 +113,7 @@ public class ConfigManager
             for ( String line : reader.lines().toArray( String[]::new ) )
             {
                 // Skip comments and blank lines
-                if ( line.startsWith( "#" ) || line.isBlank() ) continue;
+                if ( line.trim().startsWith( "#" ) || line.isBlank() ) continue;
                 
                 // Split it by the equals sign (.properties format)
                 String[] entry = line.split( "=" );

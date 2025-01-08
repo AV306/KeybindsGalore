@@ -124,7 +124,11 @@ public class KeybindSelectorScreen extends Screen
         Tessellator tess = Tessellator.getInstance();
     
         RenderSystem.disableCull();
-        RenderSystem.enableBlend();
+        // We may not save on the state change itself, but I suppose being able to disable blend
+        // might help Sinytra users' performance
+        // https://stackoverflow.com/questions/7505018/repeated-state-changes-in-opengl
+        if ( Configurations.PIE_MENU_BLEND ) RenderSystem.enableBlend();
+
         RenderSystem.setShader( GameRenderer::getPositionColorProgram ); // pre-1.21.2
         //RenderSystem.setShader( ShaderProgramKeys.POSITION_COLOR ); // Post-1.21.2
 
@@ -163,7 +167,7 @@ public class KeybindSelectorScreen extends Screen
         BufferRenderer.drawWithGlobalProgram( buf.end() );
         //tess.draw(); // 1.20.6
         RenderSystem.enableCull();
-        RenderSystem.disableBlend();
+        if ( Configurations.PIE_MENU_BLEND ) RenderSystem.disableBlend();
     }
 
     private void drawSector( BufferBuilder buf, float startAngle, float sectorAngle, int vertices, float innerRadius, float outerRadius,
@@ -223,10 +227,9 @@ public class KeybindSelectorScreen extends Screen
             String actionName = Text.translatable( action.getCategory() ).getString() + ": " +
                 Text.translatable( action.getTranslationKey() ).getString();
 
-            // Read custom data for this keybind, if present
+            // Read custom data for this keybind, only if present
             if ( KeybindsGalorePlus.customDataManager.hasCustomData )
             {
-
                 try
                 {
                     //KeybindsGalorePlus.LOGGER.info( "Keybind ID: {}", id );
@@ -243,7 +246,6 @@ public class KeybindSelectorScreen extends Screen
             // Which side of the screen are we on?
             if ( xPos > this.centreX ) // Right side
             {
-
                 xPos -= Configurations.LABEL_TEXT_INSET;
 
                 // Check text going off-screen
@@ -264,7 +266,7 @@ public class KeybindSelectorScreen extends Screen
 
             actionName = (this.selectedSector == sectorIndex ? Formatting.UNDERLINE : Formatting.RESET) + actionName;
 
-            context.drawTextWithShadow( textRenderer, actionName, (int) xPos, (int) yPos, 0xFFFFFF );
+            context.drawText( this.textRenderer, actionName, (int) xPos, (int) yPos, 0xFFFFFF, Configurations.LABEL_TEXT_SHADOW );
         }
     }
 
@@ -283,13 +285,13 @@ public class KeybindSelectorScreen extends Screen
     @Override
     public void tick()
     {
-        super.tick();
+        // There's literally nothing there. Avoid the jump instructions.
+        // super.tick();
         
         if ( !InputUtil.isKeyPressed(
                 MinecraftClient.getInstance().getWindow().getHandle(),
                 this.conflictedKey.getCode()
-            )
-        )
+        ) )
         {
             // Hide the screen when the key is no longer pressed
             this.mc.setScreen( null );
@@ -323,7 +325,8 @@ public class KeybindSelectorScreen extends Screen
     @Override
     public void renderBackground( DrawContext context, int mouseX, int mouseY, float delta )
     {
-        // Remove the darkened background
+        // Remove the darkened background if needed
+        // This can help performance, as with all post-processing
         if ( Configurations.DARKENED_BACKGROUND ) super.renderBackground( context, mouseX, mouseY, delta );
     }
 }
