@@ -29,25 +29,22 @@ public abstract class KeyBindingMixin
 
     @Shadow private boolean pressed;
 
-    @Shadow
-    public abstract void setPressed( boolean pressed );
-
 
     @Inject( method = "setKeyPressed", at = @At( "HEAD" ), cancellable = true )
     private static void setKeyPressed( InputUtil.Key key, boolean pressed, CallbackInfo ci ) throws Exception
     {
-        KeybindsGalorePlus.debugLog( "setKeyPressed called for key {} with state {}", key.getTranslationKey(), pressed );
+        KeybindsGalorePlus.debugLog( "setKeyPressed called, targeting key {} with state {}", key.getTranslationKey(), pressed );
 
         // Handle key
         KeybindManager.handleKeyPress( key, pressed, ci );
     }
 
     // Normally this handles incrementing times pressed; only called when key first goes down
-    // "times pressed" is probably used for sub-tick input accumulation
+    // "times pressed" is used for sub-tick input accumulation
     @Inject( method = "onKeyPressed", at = @At( "HEAD" ), cancellable = true )
     private static void onKeyPressed( InputUtil.Key key, CallbackInfo ci )
     {
-        KeybindsGalorePlus.debugLog( "onKeyPressed called for key {}", key.getTranslationKey() );
+        KeybindsGalorePlus.debugLog( "onKeyPressed called, targeting key {}", key.getTranslationKey() );
 
         if ( KeybindManager.hasConflicts( key ) /*&& !KeybindManager.isSkippedKey( key )*/ )
         {

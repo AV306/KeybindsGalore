@@ -116,7 +116,7 @@ public class KeybindsGalorePlus implements ClientModInitializer
         }
 
         // Find conflicts on first world join
-        ClientPlayConnectionEvents.JOIN.register( (handler, sender, client) -> KeybindManager.getAllConflicts() );
+        ClientPlayConnectionEvents.JOIN.register( (handler, sender, client) -> KeybindManager.findAllConflicts() );
     }
 
     public static void debugLog( String message )

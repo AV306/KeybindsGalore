@@ -14,5 +14,5 @@ public interface KeyBindingAccessor
 
     @Accessor InputUtil.Key getBoundKey();
 
-    @Invoker( "setPressed" ) void invokeSetPressed( boolean pressed );
+    @Invoker( "reset" ) void invokeReset();
 }

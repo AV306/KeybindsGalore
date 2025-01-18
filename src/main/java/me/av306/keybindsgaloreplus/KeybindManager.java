@@ -10,8 +10,6 @@ import java.util.*;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static me.av306.keybindsgaloreplus.Configurations.DEBUG;
-
 
 public class KeybindManager
 {
@@ -25,10 +23,12 @@ public class KeybindManager
 
     /**
      * Maps physical keys to a list of bindings they can trigger.
-     * <br>
      * Only contains keys bound to more than one binding.
+     * <br>
+     * Compatibility mods may add other bindings (e.g. from another mod's keybind manager) here,
+     * but must not make changes to existing values.
      */
-    private static final Hashtable<InputUtil.Key, List<KeyBinding>> bindingsToKeys = new Hashtable<>();
+    public static final Hashtable<InputUtil.Key, List<KeyBinding>> conflictTable = new Hashtable<>();
 
     /**
      * Check if a given key has any binding conflicts, and adds any bindings to its list.
@@ -60,7 +60,7 @@ public class KeybindManager
         if ( matches.size() > 1 )
         {
             // Register the key in our map of conflicting keys
-            bindingsToKeys.put( key, matches );
+            conflictTable.put( key, matches );
             //LOGGER.info("Conflicting key: " + key);
 
             return true;
@@ -69,53 +69,53 @@ public class KeybindManager
         {
             // No conflicts, not worth handling
             // Remove it if it's present (means it used to be valid, but has been changed)
-            bindingsToKeys.remove( key );
+            conflictTable.remove( key );
             return false;
         }
     }
 
     /**
-     * FInd all conflicts on all keys
+     * FInd all conflicts on all keys known to the vanilla keybind manager
      */
-    public static void getAllConflicts()
+    public static void findAllConflicts()
     {
         KeybindsGalorePlus.LOGGER.info( "Performing lazy conflict check" );
 
         MinecraftClient client = MinecraftClient.getInstance();
 
         // Clear map
-        bindingsToKeys.clear();
+        conflictTable.clear();
 
         // Iterate over all bindings, adding them to the list under its assigned physical key
         for ( KeyBinding keybinding : client.options.allKeys )
         {
             InputUtil.Key physicalKey = ((KeyBindingAccessor) keybinding).getBoundKey();
 
-            // Skip unbound keys -- keys are usually only bound to KEY_UNKNOWN when they are "unbound"
+            // Skip unbound keys — keys are usually only bound to KEY_UNKNOWN when they are "unbound"
             if ( physicalKey.getCode() == GLFW.GLFW_KEY_UNKNOWN ) continue;
 
             //KeybindsGalorePlus.LOGGER.info( "Adding {} to list for physical key {}", keybinding.getTranslationKey(), physicalKey.getTranslationKey() );
 
             // Create a new list if the key doesn't have one
-            bindingsToKeys.computeIfAbsent( physicalKey, key -> new ArrayList<>() );
+            conflictTable.computeIfAbsent( physicalKey, key -> new ArrayList<>() );
 
             // Add the binding to the list held by the physical key
-            bindingsToKeys.get( physicalKey ).add( keybinding );
+            conflictTable.get( physicalKey ).add( keybinding );
         }
 
         // Prune the hashtable, copying its keys before pruning
-        new HashSet<>( bindingsToKeys.keySet() ).forEach( key ->
+        new HashSet<>( conflictTable.keySet() ).forEach( key ->
         {
             // Remove all entries for physical keys with less than 2 bindings (they don't have conflicts)
-            if ( bindingsToKeys.get( key ).size() < 2 )
-                bindingsToKeys.remove( key );
+            if ( conflictTable.get( key ).size() < 2 )
+                conflictTable.remove( key );
         } );
 
         // Debug -- prints the resulting hashtable
         if ( Configurations.DEBUG )
         {
             KeybindsGalorePlus.LOGGER.info( "Dumping key conflict table" );
-            bindingsToKeys.values().forEach( list -> list.forEach( binding -> KeybindsGalorePlus.LOGGER.info( "\t{} bound to physical key {}", binding.getTranslationKey(), ((KeyBindingAccessor) binding).getBoundKey() ) ) );
+            conflictTable.values().forEach( list -> list.forEach( binding -> KeybindsGalorePlus.LOGGER.info( "\t{} bound to physical key {}", binding.getTranslationKey(), ((KeyBindingAccessor) binding).getBoundKey() ) ) );
         }
     }
 
@@ -133,7 +133,7 @@ public class KeybindManager
      */
     public static boolean hasConflicts( InputUtil.Key key )
     {
-        return bindingsToKeys.containsKey( key );
+        return conflictTable.containsKey( key );
     }
 
     /**
@@ -150,7 +150,7 @@ public class KeybindManager
      */
     public static List<KeyBinding> getConflicts( InputUtil.Key key )
     {
-        return bindingsToKeys.get( key );
+        return conflictTable.get( key );
     }
 
     /**
@@ -175,7 +175,7 @@ public class KeybindManager
 
                     // Changing Screens (which this method does) resets all bindings to "unpressed",
                     // so zoom mods should work absolutely fine with us :)
-                    KeybindsGalorePlus.debugLog( "\tOpened pie menu" );
+                    KeybindsGalorePlus.debugLog( "\tOpening pie menu" );
 
                     openConflictMenu( key );
                 }
@@ -190,10 +190,17 @@ public class KeybindManager
                 // Transfer key state to all bindings on the key
                 getConflicts( key ).forEach( binding ->
                 {
-                    KeybindsGalorePlus.debugLog( "\tVanilla fix, enabling key {}", binding.getTranslationKey() );
+                    KeybindsGalorePlus.debugLog( "\tVanilla fix, {} key {}", pressed ? "enabling" : "disabling", binding.getTranslationKey() );
 
-                    ((KeyBindingAccessor) binding).setPressed( pressed );
-                    ((KeyBindingAccessor) binding).setTimesPressed( 1 );
+                    if ( pressed )
+                    {
+                        ((KeyBindingAccessor) binding).setPressed( true );
+                        ((KeyBindingAccessor) binding).setTimesPressed( 1 );
+                    }
+                    // We can't simply pass "false" to the previous branch, becuase wasPressed() will return true
+                    // as long as timesPressed > 0, even if pressed == false.
+                    else ((KeyBindingAccessor) binding).invokeReset();
+
                 } );
             }
             //else {}

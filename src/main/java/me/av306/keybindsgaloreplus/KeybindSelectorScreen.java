@@ -15,6 +15,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import me.av306.keybindsgaloreplus.mixin.KeyBindingAccessor;
 import net.minecraft.client.MinecraftClient;
 //import net.minecraft.client.gl.ShaderProgramKeys;
+import net.minecraft.client.Mouse;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.option.KeyBinding;
@@ -71,6 +72,11 @@ public class KeybindSelectorScreen extends Screen
         this.setConflictedKey( key );
     }
 
+    public void setConflictedKey( InputUtil.Key key )
+    {
+        this.conflictedKey = key;
+    }
+
     @Override
     public void render( DrawContext context, int mouseX, int mouseY, float delta )
     {
@@ -117,6 +123,8 @@ public class KeybindSelectorScreen extends Screen
         this.renderLabelTexts( context, delta, numberOfSectors, sectorAngle );
     }
 
+
+    // Rendering methods
 
     private void renderPieMenu( DrawContext context, float delta, int numberOfSectors, float sectorAngle )
     {
@@ -270,10 +278,8 @@ public class KeybindSelectorScreen extends Screen
         }
     }
 
-    public void setConflictedKey( InputUtil.Key key )
-    {
-        this.conflictedKey = key;
-    }
+
+    // Others
 
     // Returns the angle of the line bounded by the given coordinates and the mouse position from the vertical axis
     // This is why we study trigo, guys
@@ -282,36 +288,54 @@ public class KeybindSelectorScreen extends Screen
         return (MathHelper.atan2(my - y, mx - x) + Math.PI * 2) % (Math.PI * 2);
     }
 
+    private void closePieMenu()
+    {
+        this.mc.setScreen( null );
+
+        // Activate the selected binding
+        if ( this.selectedSector != -1 )
+        {
+            KeyBinding bind = KeybindManager.getConflicts( this.conflictedKey ).get( this.selectedSector );
+
+            KeybindsGalorePlus.debugLog( "Activated {} from pie menu", bind.getTranslationKey() );
+
+            ((KeyBindingAccessor) bind).setPressed( true );
+            ((KeyBindingAccessor) bind).setTimesPressed( 1 );
+            //((KeyBindingAccessor) bind).invokeSetPressed( true );
+        }
+        else KeybindsGalorePlus.debugLog( "Pie menu closed with no selection" );
+    }
+
+
+    // Overrides
+
     @Override
     public void tick()
     {
         // There's literally nothing there. Avoid the jump instructions.
         // super.tick();
-        
-        if ( !InputUtil.isKeyPressed(
-                MinecraftClient.getInstance().getWindow().getHandle(),
-                this.conflictedKey.getCode()
-        ) )
-        {
-            // Hide the screen when the key is no longer pressed
-            this.mc.setScreen( null );
-
-            // Activate the selected binding
-            if ( this.selectedSector != -1 )
-            {
-                KeyBinding bind = KeybindManager.getConflicts( conflictedKey ).get( this.selectedSector );
-
-                KeybindsGalorePlus.debugLog( "Activated {} from pie menu", bind.getTranslationKey() );
-
-                ((KeyBindingAccessor) bind).setPressed( true );
-                ((KeyBindingAccessor) bind).setTimesPressed( 1 );
-                //((KeyBindingAccessor) bind).invokeSetPressed( true );
-            }
-            else KeybindsGalorePlus.debugLog( "Pie menu closed with no selection" );
-        }
-
         this.ticksInScreen++;
     }
+
+    // These two callbacks work the same as handling it in tick(), plus we get differentiated mouse/keyboard handling
+    // Previously, InputUtil.isKeyPressed would throw a GL error when called for a mouse code (0, 1, 2) and return a meaningless value
+
+    @Override
+    public boolean keyReleased( int keyCode, int scanCode, int modifiers )
+    {
+        if ( keyCode == this.conflictedKey.getCode() ) this.closePieMenu();
+        return super.keyReleased( keyCode, scanCode, modifiers );
+    }
+
+    @Override
+    public boolean mouseReleased( double mouseX, double mouseY, int button )
+    {
+        Mouse
+        if ( button == this.conflictedKey.getCode() ) this.closePieMenu();
+        return super.mouseReleased( mouseX, mouseY, button );
+    }
+
+
 
     @Override
     // Don't pause the game when this screen is open

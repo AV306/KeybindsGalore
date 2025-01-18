@@ -22,6 +22,6 @@ public abstract class KeybindsScreenMixin extends GameOptionsScreen
         super.close();
 
         // Check for conflicting keybinds on screen close
-        KeybindManager.getAllConflicts();
+        KeybindManager.findAllConflicts();
     }
 }
