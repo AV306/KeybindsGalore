@@ -2,6 +2,7 @@ package me.av306.keybindsgaloreplus;
 
 import me.av306.keybindsgaloreplus.configmanager.ConfigManager;
 import me.av306.keybindsgaloreplus.customdata.DataManager;
+import me.av306.keybindsgaloreplus.mixin.KeyBindingAccessor;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -28,6 +29,9 @@ public class KeybindsGalorePlus implements ClientModInitializer
     public static final Logger LOGGER = LoggerFactory.getLogger( "keybingsgaloreplus" );
 
     private static KeyBinding configreloadKeybind;
+
+    public static boolean shouldSetAttackPressed = false;
+
     @Override
     public void onInitializeClient()
     {
@@ -108,12 +112,24 @@ public class KeybindsGalorePlus implements ClientModInitializer
                     }
                 }
             } );
+
+
         }
         catch ( IOException ioe )
         {
             LOGGER.error( "IOException while reading config file on init!" );
             ioe.printStackTrace();
         }
+
+        ClientTickEvents.END_CLIENT_TICK.register( client ->
+        {
+            if ( shouldSetAttackPressed )
+            {
+                KeybindsGalorePlus.debugLog( "attack workaround activated" );
+                ((KeyBindingAccessor) client.options.attackKey).setPressed( true );
+                ((KeyBindingAccessor) client.options.attackKey).setTimesPressed( 1 );
+            }
+        } );
 
         // Find conflicts on first world join
         ClientPlayConnectionEvents.JOIN.register( (handler, sender, client) -> KeybindManager.findAllConflicts() );

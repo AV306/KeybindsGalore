@@ -18,10 +18,14 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.NarratorManager;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.MathHelper;
@@ -302,8 +306,19 @@ public class KeybindSelectorScreen extends Screen
             ((KeyBindingAccessor) bind).setPressed( true );
             ((KeyBindingAccessor) bind).setTimesPressed( 1 );
             //((KeyBindingAccessor) bind).invokeSetPressed( true );
+
+            // Attack workaround (very hacky)
+            if ( /*bind.equals( MinecraftClient.getInstance().options.attackKey )*/ bind.getTranslationKey().equals( "key.attack" ) )
+            {
+                KeybindsGalorePlus.shouldSetAttackPressed = true;
+                KeybindsGalorePlus.debugLog( "Enabled attack workaround" );
+            }
         }
-        else KeybindsGalorePlus.debugLog( "Pie menu closed with no selection" );
+        else
+        {
+            KeybindsGalorePlus.shouldSetAttackPressed = false;
+            KeybindsGalorePlus.debugLog( "Pie menu closed with no selection" );
+        }
     }
 
 
@@ -319,19 +334,22 @@ public class KeybindSelectorScreen extends Screen
 
     // These two callbacks work the same as handling it in tick(), plus we get differentiated mouse/keyboard handling
     // Previously, InputUtil.isKeyPressed would throw a GL error when called for a mouse code (0, 1, 2) and return a meaningless value
+    // Note: key.attack will not work as it is consumed using wasPressed() and will be set to false
+    // FIXME: can be worked around by setting it to pressed every tick
 
     @Override
     public boolean keyReleased( int keyCode, int scanCode, int modifiers )
     {
         if ( keyCode == this.conflictedKey.getCode() ) this.closePieMenu();
+
         return super.keyReleased( keyCode, scanCode, modifiers );
     }
 
     @Override
     public boolean mouseReleased( double mouseX, double mouseY, int button )
     {
-        Mouse
         if ( button == this.conflictedKey.getCode() ) this.closePieMenu();
+        
         return super.mouseReleased( mouseX, mouseY, button );
     }
 

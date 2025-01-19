@@ -184,7 +184,6 @@ public class KeybindManager
             else if ( Configurations.USE_KEYBIND_FIX )
             {
                 // Key conflicts ignored, and should use fixed behaviour
-
                 ci.cancel();
 
                 // Transfer key state to all bindings on the key
