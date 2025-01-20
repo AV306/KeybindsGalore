@@ -9,6 +9,7 @@
     "client": [
         "KeyBindingAccessor",
         "KeyBindingMixin",
-        "KeybindsScreenMixin"
+        "KeybindsScreenMixin",
+        "MinecraftClientAccessor"
     ]
 }

@@ -13,6 +13,7 @@ package me.av306.keybindsgaloreplus;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import me.av306.keybindsgaloreplus.mixin.KeyBindingAccessor;
+import me.av306.keybindsgaloreplus.mixin.MinecraftClientAccessor;
 import net.minecraft.client.MinecraftClient;
 //import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.Mouse;
@@ -308,15 +309,15 @@ public class KeybindSelectorScreen extends Screen
             //((KeyBindingAccessor) bind).invokeSetPressed( true );
 
             // Attack workaround (very hacky)
-            if ( /*bind.equals( MinecraftClient.getInstance().options.attackKey )*/ bind.getTranslationKey().equals( "key.attack" ) )
+            // Abusable??? (FIXME)
+            if ( bind.equals( MinecraftClient.getInstance().options.attackKey ) && Configurations.ENABLE_ATTACK_WORKAROUND )
             {
-                KeybindsGalorePlus.shouldSetAttackPressed = true;
-                KeybindsGalorePlus.debugLog( "Enabled attack workaround" );
+                KeybindsGalorePlus.debugLog( "\tAttack workaround enabled" );
+                ((MinecraftClientAccessor) MinecraftClient.getInstance()).setAttackCooldown( 0 );
             }
         }
         else
         {
-            KeybindsGalorePlus.shouldSetAttackPressed = false;
             KeybindsGalorePlus.debugLog( "Pie menu closed with no selection" );
         }
     }
@@ -334,8 +335,6 @@ public class KeybindSelectorScreen extends Screen
 
     // These two callbacks work the same as handling it in tick(), plus we get differentiated mouse/keyboard handling
     // Previously, InputUtil.isKeyPressed would throw a GL error when called for a mouse code (0, 1, 2) and return a meaningless value
-    // Note: key.attack will not work as it is consumed using wasPressed() and will be set to false
-    // FIXME: can be worked around by setting it to pressed every tick
 
     @Override
     public boolean keyReleased( int keyCode, int scanCode, int modifiers )

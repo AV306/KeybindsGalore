@@ -16,6 +16,8 @@ public class Configurations
 
     // Behaviour
 
+    public static boolean ENABLE_ATTACK_WORKAROUND = false;
+
     // Impl as list of ints to make config easier
     public static ArrayList<Integer> SKIPPED_KEYS = new ArrayList<>();
     public static boolean USE_KEYBIND_FIX = true;
