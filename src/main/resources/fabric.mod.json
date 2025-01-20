@@ -16,7 +16,8 @@
 		"GabanKillasta -- compatibility with zoom mods",
 		"GhostIsBeHere -- key blacklist",
 		"Alwis2000 -- flagging yet another Java incompatibility mistake",
-		"GuardedHoney53 -- managing to trigger the setPressed method I thought never happened"
+		"GuardedHoney53 -- managing to trigger the setPressed method I thought never happened",
+		"...and more on GitHub!"
 	],
 	"license": "GNU Lesser General Public License v3.0",
 	"icon": "assets/keybindsgaloreplus/icon.png",
