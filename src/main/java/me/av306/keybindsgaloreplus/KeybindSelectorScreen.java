@@ -16,28 +16,21 @@ import me.av306.keybindsgaloreplus.mixin.KeyBindingAccessor;
 import me.av306.keybindsgaloreplus.mixin.MinecraftClientAccessor;
 import net.minecraft.client.MinecraftClient;
 //import net.minecraft.client.gl.ShaderProgramKeys;
-import net.minecraft.client.Mouse;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.NarratorManager;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.MathHelper;
 
 public class KeybindSelectorScreen extends Screen
 {
-    // Configurable variables
-
     // Instance variables
     private int ticksInScreen = 0;
-    private int selectedSector = -1;
+    private int selectedSectorIndex = -1;
 
     private InputUtil.Key conflictedKey = InputUtil.UNKNOWN_KEY;
 
@@ -85,9 +78,8 @@ public class KeybindSelectorScreen extends Screen
     @Override
     public void render( DrawContext context, int mouseX, int mouseY, float delta )
     {
-        super.render( context, mouseX, mouseY, delta );
-
-        //this.selectedSlot = -1;
+        //super.render( context, mouseX, mouseY, delta );
+        this.renderBackground( context, mouseX, mouseY, delta );
 
         // Pixel coords of screen centre
         // Only set these on the first frame
@@ -118,11 +110,11 @@ public class KeybindSelectorScreen extends Screen
         float sectorAngle = (MathHelper.TAU) / numberOfSectors;
 
         // Get the exact sector index that is selected
-        this.selectedSector = (int) (mouseAngle / sectorAngle);
+        this.selectedSectorIndex = (int) (mouseAngle / sectorAngle);
 
         // Deselect slot if mouse is within cancel zone
         if ( mouseDistanceFromCentre <= this.cancelZoneRadius )
-            this.selectedSector = -1;
+            this.selectedSectorIndex = -1;
         
         this.renderPieMenu( context, delta, numberOfSectors, sectorAngle );
         this.renderLabelTexts( context, delta, numberOfSectors, sectorAngle );
@@ -137,17 +129,16 @@ public class KeybindSelectorScreen extends Screen
         Tessellator tess = Tessellator.getInstance();
     
         RenderSystem.disableCull();
-        // We may not save on the state change itself, but I suppose being able to disable blend
-        // might help Sinytra users' performance
+        // We may not save on the state change itself, but I suppose being able to disable blend might help Sinytra users' performance
         // https://stackoverflow.com/questions/7505018/repeated-state-changes-in-opengl
         if ( Configurations.PIE_MENU_BLEND ) RenderSystem.enableBlend();
 
-        RenderSystem.setShader( GameRenderer::getPositionColorProgram ); // pre-1.21.2
-        //RenderSystem.setShader( ShaderProgramKeys.POSITION_COLOR ); // Post-1.21.2
+        RenderSystem.setShader( GameRenderer::getPositionColorProgram ); //# <1.21.2
+        //RenderSystem.setShader( ShaderProgramKeys.POSITION_COLOR ); //# >=1.21.2
 
-        BufferBuilder buf = tess.begin( VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR ); // 1.21+
-        //BufferBuilder buf = tess.getBuffer(); // 1.20.6
-        //buf.begin( VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR ); // 1.20.6
+        BufferBuilder buf = tess.begin( VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR ); //# >1.21
+        //BufferBuilder buf = tess.getBuffer(); //# <1.21
+        //buf.begin( VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR ); //# <1.21
 
         float startAngle = 0;
         int vertices = Configurations.CIRCLE_VERTICES / numberOfSectors; // FP truncation here
@@ -163,9 +154,8 @@ public class KeybindSelectorScreen extends Screen
             // Hardcoding lightening the inner color for a distinct visual identity or something
             if ( sectorIndex % 2 == 0 ) innerColor = outerColor += Configurations.PIE_MENU_COLOR_LIGHTEN_FACTOR;
 
-            if ( this.selectedSector == sectorIndex )
+            if ( this.selectedSectorIndex == sectorIndex )
             {
-                //outerRadius *= EXPANSION_FACTOR_WHEN_SELECTED;
                 innerRadius *= Configurations.EXPANSION_FACTOR_WHEN_SELECTED;
                 outerColor = Configurations.PIE_MENU_HIGHLIGHT_COLOR;
             }
@@ -177,8 +167,8 @@ public class KeybindSelectorScreen extends Screen
             startAngle += sectorAngle;
         }
 
-        BufferRenderer.drawWithGlobalProgram( buf.end() );
-        //tess.draw(); // 1.20.6
+        BufferRenderer.drawWithGlobalProgram( buf.end() ); //# >=1.21
+        //tess.draw(); //# <1.21
         RenderSystem.enableCull();
         if ( Configurations.PIE_MENU_BLEND ) RenderSystem.disableBlend();
     }
@@ -194,12 +184,12 @@ public class KeybindSelectorScreen extends Screen
             // FIXME: is the compiler smart enough to optimise the trigo?
             buf.vertex( this.centreX + MathHelper.cos( angle ) * innerRadius, this.centreY + MathHelper.sin( angle ) * innerRadius, 0 );
             buf.color( innerColor, innerColor, innerColor, Configurations.PIE_MENU_ALPHA );
-            //buf.next(); // 1.20.6
+            //buf.next(); //# <1.21
 
             // Outer vertex
             buf.vertex( this.centreX + MathHelper.cos( angle ) * outerRadius, this.centreY + MathHelper.sin( angle ) * outerRadius, 0 );
             buf.color( outerColor, outerColor, outerColor, Configurations.PIE_MENU_ALPHA );
-            //buf.next(); // 1.20.6
+            //buf.next(); //# <1.21
         }
     }
 
@@ -210,7 +200,7 @@ public class KeybindSelectorScreen extends Screen
                 this.maxRadius;
 
         // Expand the sector if selected
-        if ( this.selectedSector == sectorIndex ) radius *= Configurations.EXPANSION_FACTOR_WHEN_SELECTED;
+        if ( this.selectedSectorIndex == sectorIndex ) radius *= Configurations.EXPANSION_FACTOR_WHEN_SELECTED;
 
         return radius;
     }
@@ -235,6 +225,7 @@ public class KeybindSelectorScreen extends Screen
 
             // The biggest nagging bug for me
             // Tells you which control category the action goes in
+            // TODO: configurable
 
             String id = action.getTranslationKey();
             String actionName = Text.translatable( action.getCategory() ).getString() + ": " +
@@ -277,7 +268,7 @@ public class KeybindSelectorScreen extends Screen
             // Move the text closer to the centre of the circle
             yPos -= Configurations.LABEL_TEXT_INSET;
 
-            actionName = (this.selectedSector == sectorIndex ? Formatting.UNDERLINE : Formatting.RESET) + actionName;
+            actionName = (this.selectedSectorIndex == sectorIndex ? Formatting.UNDERLINE : Formatting.RESET) + actionName;
 
             context.drawText( this.textRenderer, actionName, (int) xPos, (int) yPos, 0xFFFFFF, Configurations.LABEL_TEXT_SHADOW );
         }
@@ -298,9 +289,9 @@ public class KeybindSelectorScreen extends Screen
         this.mc.setScreen( null );
 
         // Activate the selected binding
-        if ( this.selectedSector != -1 )
+        if ( this.selectedSectorIndex != -1 )
         {
-            KeyBinding bind = KeybindManager.getConflicts( this.conflictedKey ).get( this.selectedSector );
+            KeyBinding bind = KeybindManager.getConflicts( this.conflictedKey ).get( this.selectedSectorIndex );
 
             KeybindsGalorePlus.debugLog( "Activated {} from pie menu", bind.getTranslationKey() );
 
@@ -310,10 +301,10 @@ public class KeybindSelectorScreen extends Screen
 
             // Attack workaround (very hacky)
             // Abusable??? (FIXME)
-            if ( bind.equals( MinecraftClient.getInstance().options.attackKey ) && Configurations.ENABLE_ATTACK_WORKAROUND )
+            if ( bind.equals( this.mc.options.attackKey ) && Configurations.ENABLE_ATTACK_WORKAROUND )
             {
                 KeybindsGalorePlus.debugLog( "\tAttack workaround enabled" );
-                ((MinecraftClientAccessor) MinecraftClient.getInstance()).setAttackCooldown( 0 );
+                ((MinecraftClientAccessor) this.mc).setAttackCooldown( 0 );
             }
         }
         else
@@ -357,17 +348,15 @@ public class KeybindSelectorScreen extends Screen
     @Override
     // Don't pause the game when this screen is open
     // actually why not
-    public boolean shouldPause()
-    {
-        return false;
-    }
+    public boolean shouldPause() { return false; }
 
-    // 1.20.2 onwards
     @Override
-    public void renderBackground( DrawContext context, int mouseX, int mouseY, float delta )
+    public void renderBackground( DrawContext context, int mouseX, int mouseY, float delta ) //# >=1.20.2
+    //public void renderBackground( DrawContext context ) //# <1.20.2
     {
         // Remove the darkened background if needed
         // This can help performance, as with all post-processing
-        if ( Configurations.DARKENED_BACKGROUND ) super.renderBackground( context, mouseX, mouseY, delta );
+        if ( Configurations.DARKENED_BACKGROUND ) super.renderBackground( context, mouseX, mouseY, delta ); //# >=1.20.2
+        //if ( Configurations.DARKENED_BACKGROUND ) super.renderBackground( context ); //# <1.20.2
     }
 }
