@@ -11,11 +11,14 @@
 
 <br>
 
-This Fabric mod gives keys with to multiple conflicting keybindings a **pie menu** (aka pizza menu, circle selector, etc) that lets you choose the *desired action* when the key is pressed!
+A keybind conflict management and general quality-of-life mod!
 
-It also corrects the default keybind conflict behaviour for keys that you choose to not open a pie menu, so they will activate **all** bindings when pressed (and not just whichever one happened to be attached to the key last), similar to [Keybinds Fix].
-
-Supports 1.21, and works on Neoforge with Sinytra Connector!
+- Provides a **pie menu** for conflicting keybinds
+- **Corrects vanilla conflict handling**, similar to [Keybinds Fix](https://www.curseforge.com/minecraft/mc-mods/keybind-fix)
+- Supports **mouse buttons**
+- **Fixes many bugs** and adds many improvements to the original mod
+- Supports **1.20.x** and **1.21.x**
+- Supports **Fabric** and **Forge/NeoForge (via Sinytra Connector)**
 
 <div style="display: flex; justify-content: center; align-items: center;">
   <img src="https://github.com/AV306/KeybindsGalore-Plus/blob/14b7001f913c9bf089ef4fc41934c60dcf0db275/images/kbg_plus_demo.gif?raw=true" max-height=400 />
@@ -25,16 +28,19 @@ Supports 1.21, and works on Neoforge with Sinytra Connector!
 
 ## Modifications to Original
 
-- Optimised conflict searching (only checks for conflicts when the keybind setting menu is closed)
-- Keybind labels now show their category along with their name ([example](https://github.com/AV306/MultiBind/blob/master/docs.md))
+- Optimised conflict searching
+- Keybind labels now show their category along with their name
 - Customisable keybind labels (see [this issue](https://github.com/AV306/KeybindsGalore-Plus/issues/3))
 - Label texts no longer run off the screen
 - Fully customisable pie menu
-- And more...
+- Allows compatibility with non-vanilla keybinds (insert your keybinds into the [conflict table](https://github.com/AV306/KeybindsGalore-Plus/blob/1.21/src/main/java/me/av306/keybindsgaloreplus/KeybindManager.java) whenever convenient!)
+- **And more...**
 
 <br>
 
 ## Bug-busters :heart:
+
+Bug reports and feature requests VERY welcome!
 
 - lightmcxx
 - mo9713
@@ -49,6 +55,25 @@ Supports 1.21, and works on Neoforge with Sinytra Connector!
 - BumbleTree
 - Mideks
 - UNI717
+- IG114514
+
+(let me know if I missed you!)
+
+<br>
+
+## Roadmap
+
+### 1.3.5
+
+- Bugfixes
+
+### 1.4.0
+
+- Per-keybind overrides in custom data for:
+  - Label text (category + name / name only / custom text)
+  - sector colour
+  - sector opacity
+- Removal of non-lazy conflict check
 
 <br>
 
